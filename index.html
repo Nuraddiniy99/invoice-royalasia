@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Invoice - ROYAL ASIA</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-gold: #c5a059;
+            --dark-blue: #0a1d37;
+            --border-color: #e0e0e0;
+            --bg-body: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- FORM STYLING --- */
+        .no-print-area {
+            width: 100%;
+            max-width: 794px;
+            background: #fff;
+            padding: 20px;
+            box-sizing: border-box;
+            border-bottom: 3px solid var(--primary-gold);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 20px;
+            text-align: center;
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 600px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .input-group label { 
+            display: block; 
+            font-size: 11px; 
+            font-weight: bold; 
+            margin-bottom: 6px; 
+            color: #666; 
+            text-transform: uppercase;
+        }
+
+        .input-group input, .input-group select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-download, .btn-preview {
+            flex: 1;
+            padding: 16px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-download { background: var(--dark-blue); }
+        .btn-preview { background: var(--primary-gold); display: none; }
+
+        /* Mobile specific style */
+        @media (max-width: 768px) {
+            .btn-preview { display: block; }
+            .invoice-scroll-container { display: none; } /* Sembunyikan preview bawah di mobile */
+        }
+
+        /* --- INVOICE CONTAINER (A4) --- */
+        .invoice-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        #invoice-container {
+            background-color: white;
+            width: 794px;
+            min-width: 794px;
+            height: 1080px; /* Dikurangi sedikit agar aman 1 halaman */
+            padding: 50px 60px;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 15px;
+        }
+
+        .logo-section img { width: 110px; height: auto; }
+        
+        .company-contact {
+            text-align: right;
+            font-size: 10px;
+            line-height: 1.5;
+            color: #444;
+        }
+
+        .company-contact h1 {
+            color: var(--dark-blue);
+            margin: 0 0 5px 0;
+            font-size: 35px;
+
+        }
+
+        .invoice-title-block {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .title-text h2 { font-size: 26px; color: var(--dark-blue); margin: 0; text-transform: uppercase; }
+
+        .meta-info table { font-size: 12px; border-collapse: collapse; }
+        .meta-info td { padding: 3px 0; }
+        .meta-info td:first-child { font-weight: bold; width: 90px; }
+
+        .billing-section { margin-top: 30px; font-size: 13px; }
+        .billing-section h4 {
+            color: var(--primary-gold);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .details-table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        .details-table th { background-color: var(--dark-blue); color: white; text-align: left; padding: 10px 15px; font-size: 12px; }
+        .details-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 12px; vertical-align: top; }
+
+        .summary-wrapper { display: flex; justify-content: flex-end; margin-top: 15px; }
+        .summary-table { width: 230px; font-size: 13px; }
+        .summary-table td { padding: 6px 0; }
+        .summary-table .total-row { border-top: 2px solid var(--dark-blue); font-weight: bold; font-size: 15px; color: var(--dark-blue); }
+
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+        }
+
+        /* --- POPUP MODAL (MOBILE ONLY) --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            width: 90%;
+            height: 80%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 15px;
+            background: var(--dark-blue);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal { font-size: 24px; cursor: pointer; }
+
+        .modal-body {
+            flex: 1;
+            overflow: auto;
+            padding: 10px;
+            background: #ccc;
+            display: flex;
+            justify-content: center;
+        }
+
+        .preview-scale {
+            transform: scale(0.45); /* Skala agar invoice muat di layar HP */
+            transform-origin: top center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-area">
+        <span class="form-title">ROYAL ASIA INVOICE PANEL</span>
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Nama Tamu</label>
+                <input type="text" id="in-name" oninput="updateInvoice()" placeholder="Input Full Name">
+            </div>
+            <div class="input-group">
+                <label>Jenis Dokumen</label>
+                <select id="in-type" onchange="updateInvoice()">
+                    <option value="BOOKING CONFIRMATION">Booking Confirmation</option>
+                    <option value="PAYMENT RECEIPT">Payment Receipt</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Check-In</label>
+                <input type="date" id="in-checkin" oninput="updateInvoice()">
+            </div>
+            <div class="input-group">
+                <label>Check-Out</label>
+                <input type="date" id="in-checkout" oninput="updateInvoice()">
+            </div>
+            <div class="input-group">
+                <label>Status Pembayaran</label>
+                <select id="in-status" onchange="updateInvoice()">
+                    <option value="PAID">Paid (Lunas)</option>
+                    <option value="UNPAID">Unpaid (Belum Lunas)</option>
+                    <option value="BOOKED">Booked (Terbooking)</option>
+                </select>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="btn-preview" onclick="toggleModal(true)">PREVIEW</button>
+            <button class="btn-download" onclick="downloadPDF()">UNDUH PDF</button>
+        </div>
+    </div>
+
+    <div class="invoice-scroll-container">
+        <div id="invoice-container">
+            <div class="header">
+                <div class="logo-section">
+                    <img src="https://i.ibb.co/tTn6DhJc/royalasia.png" alt="Logo">
+                </div>
+                <div class="company-contact">
+                    <h1>ROYAL ASIA HOMESTAY</h1>
+                    <p>Building 2 Blok 27 Floor 7 Flat,<br>
+                    22 Haebah Tower-Ismail Wahbah st, 9th District,<br>
+                    Nasr City, Cairo - Egypt<br>
+                    <strong>WhatsApp:</strong> +62 881 0106 60260<br>
+                    <strong>Email:</strong> toursroyalasia@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="invoice-title-block">
+                <div class="title-text">
+                    <h2 id="out-doc-type">INVOICE</h2>
+                    <p id="out-doc-sub" style="color: #666; font-size: 13px; margin-top: 5px;">Booking Confirmation</p>
+                </div>
+                <div class="meta-info">
+                    <table>
+                        <tr><td>No. Invoice</td><td>: <span id="out-inv-no">#RA-1001</span></td></tr>
+                        <tr><td>Tanggal</td><td>: <span id="out-inv-date">-</span></td></tr>
+                        <tr><td>Status</td><td>: <span id="out-status-label">-</span></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="billing-section">
+                <h4>Ditujukan Kepada:</h4>
+                <p><strong id="out-guest-name" style="font-size: 15px;">GUEST NAME</strong></p>
+                <p id="out-desc-label">Konfirmasi Pemesanan Homestay</p>
+            </div>
+
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Deskripsi Layanan</th>
+                        <th style="text-align: center;">Durasi</th>
+                        <th style="text-align: center;">Harga / Malam</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Sewa Unit Homestay Royal Asia</strong><br>
+                            <small style="color: #666;">Lokasi: Nasr City, Cairo - Egypt</small><br>
+                            <small style="color: #666;">Periode: <span id="out-period">-</span></small>
+                        </td>
+                        <td style="text-align: center;"><span id="out-nights">0</span> Malam</td>
+                        <td style="text-align: center;">$50.00</td>
+                        <td style="text-align: right; font-weight: bold;">$<span id="out-subtotal">0.00</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="summary-wrapper">
+                <table class="summary-table">
+                    <tr>
+                        <td>Subtotal</td>
+                        <td style="text-align: right;">$<span id="res-sub">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <td>Pajak (0%)</td>
+                        <td style="text-align: right;">$0.00</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>TOTAL AKHIR</td>
+                        <td style="text-align: right;">$<span id="res-total">0.00</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="footer">
+                <p><strong>Syarat & Ketentuan:</strong></p>
+                <p>1. Bukti pembayaran ini sah sebagai konfirmasi booking/pembayaran.<br>
+                   2. Check-in dan Check-out hanya diantara pukul 08:00 sampai 23:00 waktu setempat.</p>
+                <p style="margin-top: 15px; font-weight: bold; color: var(--dark-blue);">Terima kasih telah mempercayakan akomodasi Anda kepada Royal Asia Homestay Egypt.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Preview Invoice</span>
+                <span class="close-modal" onclick="toggleModal(false)">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const RATE = 50;
+
+        function updateInvoice() {
+            const name = document.getElementById('in-name').value || "GUEST NAME";
+            const type = document.getElementById('in-type').value;
+            const status = document.getElementById('in-status').value;
+            const cin = document.getElementById('in-checkin').value;
+            const cout = document.getElementById('in-checkout').value;
+            
+            // Handle Status
+            const statusLabel = document.getElementById('out-status-label');
+            statusLabel.innerText = status;
+            statusLabel.style.color = status === 'PAID' ? "#27ae60" : (status === 'UNPAID' ? "#e74c3c" : "#f39c12");
+            statusLabel.style.fontWeight = "bold";
+            statusLabel.style.padding = "2px 8px";
+            statusLabel.style.borderRadius = "4px";
+            statusLabel.style.border = "1px solid " + statusLabel.style.color;
+
+            // Handle Type
+            document.getElementById('out-doc-type').innerText = type === 'PAYMENT RECEIPT' ? 'RECEIPT' : 'INVOICE';
+            document.getElementById('out-doc-sub').innerText = type;
+            document.getElementById('out-desc-label').innerText = type === 'PAYMENT RECEIPT' ? "Kuitansi Resmi Pembayaran Homestay" : "Konfirmasi Pemesanan Homestay";
+
+            // Calculation
+            let nights = 0;
+            if(cin && cout) {
+                const d1 = new Date(cin);
+                const d2 = new Date(cout);
+                nights = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+            }
+            nights = nights > 0 ? nights : 0;
+            const total = nights * RATE;
+
+            // Display
+            document.getElementById('out-guest-name').innerText = name.toUpperCase();
+            document.getElementById('out-nights').innerText = nights;
+            document.getElementById('out-subtotal').innerText = total.toFixed(2);
+            document.getElementById('res-sub').innerText = total.toFixed(2);
+            document.getElementById('res-total').innerText = total.toFixed(2);
+            document.getElementById('out-period').innerText = cin && cout ? cin + " s/d " + cout : "-";
+            document.getElementById('out-inv-date').innerText = new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'});
+            
+            if(!document.getElementById('in-name').dataset.inv) {
+                document.getElementById('in-name').dataset.inv = Math.floor(1000 + Math.random() * 9000);
+            }
+            document.getElementById('out-inv-no').innerText = "#RA-" + document.getElementById('in-name').dataset.inv;
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('previewModal');
+            const modalBody = document.getElementById('modalBody');
+            const invoice = document.getElementById('invoice-container');
+
+            if (show) {
+                modalBody.innerHTML = '';
+                const clone = invoice.cloneNode(true);
+                clone.classList.add('preview-scale');
+                modalBody.appendChild(clone);
+                modal.style.display = 'flex';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('invoice-container');
+            const guestName = document.getElementById('in-name').value || "Guest";
+            const opt = {
+                margin: 0,
+                filename: 'RoyalAsia_' + guestName + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        window.onload = updateInvoice;
+    </script>
+</body>
+</html>
