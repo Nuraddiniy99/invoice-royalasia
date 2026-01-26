@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Invoice - ROYAL ASIA</title>
+    <title>Invoice - ROYAL ASIA</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -177,6 +177,28 @@
         .summary-table td { padding: 6px 0; }
         .summary-table .total-row { border-top: 2px solid var(--dark-blue); font-weight: bold; font-size: 15px; color: var(--dark-blue); }
 
+        .signature-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Posisi di kiri bawah */
+            margin-top: 50px;
+            margin-left: 50px;
+            padding-right: 20px;
+        }
+        .signature-section img {
+            width: 170px; /* Ukuran tanda tangan */
+            height: auto;
+            margin-bottom: -10px; /* Menempelkan ttd dengan nama */
+        }
+        .signature-section p {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin: 0;
+            border-top: 1px solid #ccc;
+            padding-top: 5px;
+        }
+
         .footer {
             margin-top: auto;
             border-top: 1px solid var(--border-color);
@@ -348,10 +370,13 @@
                     </tr>
                 </table>
             </div>
-
+                <div class="signature-section">
+                    <img src="https://i.ibb.co/9khd0Cgh/Picsart-26-01-13-20-02-47-717.png" alt="Signature">
+                    <p>Admin Royal Asia Homestay</p>
+                </div>
             <div class="footer">
                 <p><strong>Syarat & Ketentuan:</strong></p>
-                <p>1. Bukti pembayaran ini sah sebagai bukti konfirmasi booking/pembayaran.<br>
+                <p>1. Bukti pembayaran ini sah sebagai konfirmasi booking/pembayaran.<br>
                    2. Check-in dan Check-out hanya diantara pukul 08:00 sampai 23:00 waktu setempat.</p>
                 <p style="margin-top: 15px; font-weight: bold; color: var(--dark-blue);">Terima kasih telah mempercayakan akomodasi Anda kepada Royal Asia Homestay Egypt.</p>
             </div>
