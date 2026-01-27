@@ -95,13 +95,12 @@
         .btn-download { background: var(--dark-blue); }
         .btn-preview { background: var(--primary-gold); display: none; }
 
-        /* Mobile specific style */
         @media (max-width: 768px) {
             .btn-preview { display: block; }
-            .invoice-scroll-container { display: none; } /* Sembunyikan preview bawah di mobile */
+            .invoice-scroll-container { display: none; }
         }
 
-        /* --- INVOICE CONTAINER (A4) --- */
+        /* --- INVOICE CONTAINER --- */
         .invoice-scroll-container {
             width: 100%;
             overflow-x: auto;
@@ -122,9 +121,8 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
 
-        /* Halaman individual dalam container */
         .page-content {
-            height: 1120px; /* Standar A4 */
+            height: 1120px;
             padding: 50px 60px;
             box-sizing: border-box;
             display: flex;
@@ -186,26 +184,35 @@
         .summary-table td { padding: 6px 0; }
         .summary-table .total-row { border-top: 2px solid var(--dark-blue); font-weight: bold; font-size: 15px; color: var(--dark-blue); }
 
+        /* --- SIGNATURE UPDATED --- */
         .signature-section {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            margin-top: 100px;
+            margin-top: 60px;
             margin-left: 50px;
-            padding-right: 20px;
         }
-        .signature-section img {
-            width: 170px;
-            height: auto;
-            margin-bottom: -10px;
-        }
-        .signature-section p {
-            font-size: 11px;
+        .sig-title {
+            font-size: 12px;
             font-weight: bold;
             color: var(--dark-blue);
-            margin: 0;
-            border-top: 1px solid #ccc;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .signature-section img {
+            width: 150px;
+            height: auto;
+            margin: 5px 0;
+        }
+        .sig-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--dark-blue);
+            border-top: 1.5px solid #333;
+            min-width: 180px;
             padding-top: 5px;
+            margin-top: 5px;
+            text-align: center;
         }
 
         .footer {
@@ -217,7 +224,6 @@
             color: #777;
         }
 
-        /* --- STYLING HALAMAN 2 (TATA TERTIB) --- */
         .page-break { page-break-before: always; }
         
         .rules-title {
@@ -239,11 +245,7 @@
             margin-bottom: 30px;
         }
 
-        .rules-list {
-            list-style: none;
-            padding: 0;
-        }
-
+        .rules-list { list-style: none; padding: 0; }
         .rules-list li {
             text-align: justify;
             font-size: 16px;
@@ -262,7 +264,6 @@
             font-size: 16px;
         }
 
-        /* --- POPUP MODAL --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -308,7 +309,7 @@
         .preview-scale {
             transform: scale(0.45);
             transform-origin: top center;
-            margin-bottom: -550px; /* Offset scale */
+            margin-bottom: -550px;
         }
     </style>
 </head>
@@ -317,6 +318,13 @@
     <div class="no-print-area">
         <span class="form-title">ROYAL ASIA INVOICE PANEL</span>
         <div class="form-grid">
+            <div class="input-group">
+                <label>Bahasa / Language</label>
+                <select id="in-lang" onchange="updateInvoice()">
+                    <option value="ID">Indonesia</option>
+                    <option value="EN">English</option>
+                </select>
+            </div>
             <div class="input-group">
                 <label>Nama Tamu</label>
                 <input type="text" id="in-name" oninput="updateInvoice()" placeholder="Input Full Name">
@@ -343,6 +351,10 @@
                     <option value="UNPAID">Unpaid (Belum Lunas)</option>
                     <option value="BOOKED">Booked (Terbooking)</option>
                 </select>
+            </div>
+            <div class="input-group">
+                <label>Nama Admin (Signature)</label>
+                <input type="text" id="in-admin" oninput="updateInvoice()" placeholder="Nama Admin">
             </div>
         </div>
         <div class="button-group">
@@ -375,15 +387,15 @@
                     </div>
                     <div class="meta-info">
                         <table>
-                            <tr><td>No. Invoice</td><td>: <span id="out-inv-no">#RA-1001</span></td></tr>
-                            <tr><td>Tanggal</td><td>: <span id="out-inv-date">-</span></td></tr>
-                            <tr><td>Status</td><td>: <span id="out-status-label">-</span></td></tr>
+                            <tr><td id="lbl-inv-no">No. Invoice</td><td>: <span id="out-inv-no">#RA-1001</span></td></tr>
+                            <tr><td id="lbl-date">Tanggal</td><td>: <span id="out-inv-date">-</span></td></tr>
+                            <tr><td id="lbl-status">Status</td><td>: <span id="out-status-label">-</span></td></tr>
                         </table>
                     </div>
                 </div>
 
                 <div class="billing-section">
-                    <h4>Ditujukan Kepada:</h4>
+                    <h4 id="lbl-to">Ditujukan Kepada:</h4>
                     <p><strong id="out-guest-name" style="font-size: 15px;">GUEST NAME</strong></p>
                     <p id="out-desc-label">Konfirmasi Pemesanan Homestay</p>
                 </div>
@@ -391,20 +403,20 @@
                 <table class="details-table">
                     <thead>
                         <tr>
-                            <th style="width: 50%;">Deskripsi Layanan</th>
-                            <th style="text-align: center;">Durasi</th>
-                            <th style="text-align: center;">Harga / Malam</th>
-                            <th style="text-align: right;">Total</th>
+                            <th style="width: 50%;" id="lbl-th-desc">Deskripsi Layanan</th>
+                            <th style="text-align: center;" id="lbl-th-qty">Durasi</th>
+                            <th style="text-align: center;" id="lbl-th-price">Harga / Malam</th>
+                            <th style="text-align: right;" id="lbl-th-total">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>
-                                <strong>Sewa Unit Homestay Royal Asia</strong><br>
-                                <small style="color: #666;">Lokasi: Nasr City, Cairo - Egypt</small><br>
-                                <small style="color: #666;">Periode: <span id="out-period">-</span></small>
+                                <strong id="lbl-unit">Sewa Unit Homestay Royal Asia</strong><br>
+                                <small style="color: #666;"><span id="lbl-loc">Lokasi</span>: Nasr City, Cairo - Egypt</small><br>
+                                <small style="color: #666;"><span id="lbl-period">Periode</span>: <span id="out-period">-</span></small>
                             </td>
-                            <td style="text-align: center;"><span id="out-nights">0</span> Malam</td>
+                            <td style="text-align: center;"><span id="out-nights">0</span> <span id="lbl-night-unit">Malam</span></td>
                             <td style="text-align: center;">$50.00</td>
                             <td style="text-align: right; font-weight: bold;">$<span id="out-subtotal">0.00</span></td>
                         </tr>
@@ -418,26 +430,27 @@
                             <td style="text-align: right;">$<span id="res-sub">0.00</span></td>
                         </tr>
                         <tr>
-                            <td>Pajak (0%)</td>
+                            <td id="lbl-tax">Pajak (0%)</td>
                             <td style="text-align: right;">$0.00</td>
                         </tr>
                         <tr class="total-row">
-                            <td>TOTAL AKHIR</td>
+                            <td id="lbl-grand-total">TOTAL AKHIR</td>
                             <td style="text-align: right;">$<span id="res-total">0.00</span></td>
                         </tr>
                     </table>
                 </div>
 
                 <div class="signature-section">
+                    <div class="sig-title">ROYAL ASIA HOMESTAY ADMIN</div>
                     <img src="https://i.ibb.co/9khd0Cgh/Picsart-26-01-13-20-02-47-717.png" alt="Signature">
-                    <p>Admin Royal Asia Homestay</p>
+                    <div class="sig-name" id="out-admin-name">ADMIN NAME</div>
                 </div>
 
                 <div class="footer">
-                    <p><strong>Syarat & Ketentuan:</strong></p>
-                    <p>1. Bukti pembayaran ini sah sebagai konfirmasi booking/pembayaran.<br>
-                       2. Check-in dan Check-out hanya diantara pukul 08:00 sampai 23:00 waktu setempat.</p>
-                    <p style="margin-top: 15px; font-weight: bold; color: var(--dark-blue);">Terima kasih telah mempercayakan akomodasi Anda kepada Royal Asia Homestay Egypt.</p>
+                    <p><strong id="lbl-term-title">Syarat & Ketentuan:</strong></p>
+                    <p id="lbl-term-1">1. Bukti pembayaran ini sah sebagai konfirmasi booking/pembayaran.</p>
+                    <p id="lbl-term-2">2. Check-in dan Check-out hanya diantara pukul 08:00 sampai 23:00 waktu setempat.</p>
+                    <p id="lbl-thanks" style="margin-top: 15px; font-weight: bold; color: var(--dark-blue);">Terima kasih telah mempercayakan akomodasi Anda kepada Royal Asia Homestay Egypt.</p>
                 </div>
             </div>
 
@@ -479,14 +492,60 @@
     <script>
         const RATE = 50;
 
+        const langData = {
+            ID: {
+                invNo: "No. Invoice", date: "Tanggal", status: "Status", to: "Ditujukan Kepada",
+                desc: "Deskripsi Layanan", qty: "Durasi", price: "Harga / Malam", total: "Total",
+                unit: "Sewa Unit Homestay Royal Asia", loc: "Lokasi", period: "Periode", night: "Malam",
+                tax: "Pajak (0%)", grand: "TOTAL AKHIR", termTitle: "Syarat & Ketentuan:",
+                term1: "1. Bukti pembayaran ini sah sebagai konfirmasi booking/pembayaran.",
+                term2: "2. Check-in dan Check-out hanya diantara pukul 08:00 sampai 23:00 waktu setempat.",
+                thanks: "Terima kasih telah mempercayakan akomodasi Anda kepada Royal Asia Homestay Egypt.",
+                confirmTxt: "Konfirmasi Pemesanan Homestay", receiptTxt: "Kuitansi Resmi Pembayaran Homestay"
+            },
+            EN: {
+                invNo: "Invoice No.", date: "Date", status: "Status", to: "Billing To",
+                desc: "Service Description", qty: "Duration", price: "Price / Night", total: "Total",
+                unit: "Royal Asia Homestay Unit Rental", loc: "Location", period: "Period", night: "Night(s)",
+                tax: "Tax (0%)", grand: "GRAND TOTAL", termTitle: "Terms & Conditions:",
+                term1: "1. This document serves as valid booking/payment confirmation.",
+                term2: "2. Check-in and Check-out are only between 08:00 to 23:00 local time.",
+                thanks: "Thank you for choosing Royal Asia Homestay Egypt for your stay.",
+                confirmTxt: "Homestay Booking Confirmation", receiptTxt: "Official Homestay Payment Receipt"
+            }
+        };
+
         function updateInvoice() {
+            const lang = document.getElementById('in-lang').value;
             const name = document.getElementById('in-name').value || "GUEST NAME";
+            const admin = document.getElementById('in-admin').value || "ADMIN NAME";
             const type = document.getElementById('in-type').value;
             const status = document.getElementById('in-status').value;
             const cin = document.getElementById('in-checkin').value;
             const cout = document.getElementById('in-checkout').value;
-            
-            // Handle Status
+            const d = langData[lang];
+
+            // Update Labels
+            document.getElementById('lbl-inv-no').innerText = d.invNo;
+            document.getElementById('lbl-date').innerText = d.date;
+            document.getElementById('lbl-status').innerText = d.status;
+            document.getElementById('lbl-to').innerText = d.to;
+            document.getElementById('lbl-th-desc').innerText = d.desc;
+            document.getElementById('lbl-th-qty').innerText = d.qty;
+            document.getElementById('lbl-th-price').innerText = d.price;
+            document.getElementById('lbl-th-total').innerText = d.total;
+            document.getElementById('lbl-unit').innerText = d.unit;
+            document.getElementById('lbl-loc').innerText = d.loc;
+            document.getElementById('lbl-period').innerText = d.period;
+            document.getElementById('lbl-night-unit').innerText = d.night;
+            document.getElementById('lbl-tax').innerText = d.tax;
+            document.getElementById('lbl-grand-total').innerText = d.grand;
+            document.getElementById('lbl-term-title').innerText = d.termTitle;
+            document.getElementById('lbl-term-1').innerText = d.term1;
+            document.getElementById('lbl-term-2').innerText = d.term2;
+            document.getElementById('lbl-thanks').innerText = d.thanks;
+
+            // Handle Status & Type
             const statusLabel = document.getElementById('out-status-label');
             statusLabel.innerText = status;
             statusLabel.style.color = status === 'PAID' ? "#27ae60" : (status === 'UNPAID' ? "#e74c3c" : "#f39c12");
@@ -494,11 +553,13 @@
             statusLabel.style.padding = "2px 8px";
             statusLabel.style.borderRadius = "4px";
             statusLabel.style.border = "1px solid " + statusLabel.style.color;
-
-            // Handle Type
-            document.getElementById('out-doc-type').innerText = type === 'PAYMENT RECEIPT' ? 'RECEIPT' : 'INVOICE';
+            
+            document.getElementById('out-doc-type').innerText = type === 'PAYMENT RECEIPT' ? (lang === 'ID' ? 'KUITANSI' : 'RECEIPT') : 'INVOICE';
             document.getElementById('out-doc-sub').innerText = type;
-            document.getElementById('out-desc-label').innerText = type === 'PAYMENT RECEIPT' ? "Kuitansi Resmi Pembayaran Homestay" : "Konfirmasi Pemesanan Homestay";
+            document.getElementById('out-desc-label').innerText = type === 'PAYMENT RECEIPT' ? d.receiptTxt : d.confirmTxt;
+
+            // Signature & Admin Name
+            document.getElementById('out-admin-name').innerText = admin.toUpperCase();
 
             // Calculation
             let nights = 0;
@@ -510,14 +571,16 @@
             nights = nights > 0 ? nights : 0;
             const total = nights * RATE;
 
-            // Display
+            // Display Info
             document.getElementById('out-guest-name').innerText = name.toUpperCase();
             document.getElementById('out-nights').innerText = nights;
             document.getElementById('out-subtotal').innerText = total.toFixed(2);
             document.getElementById('res-sub').innerText = total.toFixed(2);
             document.getElementById('res-total').innerText = total.toFixed(2);
-            document.getElementById('out-period').innerText = cin && cout ? cin + " s/d " + cout : "-";
-            document.getElementById('out-inv-date').innerText = new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'});
+            document.getElementById('out-period').innerText = cin && cout ? cin + " - " + cout : "-";
+            
+            const dateOpt = {day:'2-digit', month:'long', year:'numeric'};
+            document.getElementById('out-inv-date').innerText = new Date().toLocaleDateString(lang === 'ID' ? 'id-ID' : 'en-US', dateOpt);
             
             if(!document.getElementById('in-name').dataset.inv) {
                 document.getElementById('in-name').dataset.inv = Math.floor(1000 + Math.random() * 9000);
@@ -528,11 +591,9 @@
         function toggleModal(show) {
             const modal = document.getElementById('previewModal');
             const modalBody = document.getElementById('modalBody');
-            const invoice = document.getElementById('invoice-container');
-
             if (show) {
                 modalBody.innerHTML = '';
-                const clone = invoice.cloneNode(true);
+                const clone = document.getElementById('invoice-container').cloneNode(true);
                 clone.classList.add('preview-scale');
                 modalBody.appendChild(clone);
                 modal.style.display = 'flex';
