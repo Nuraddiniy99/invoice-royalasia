@@ -325,7 +325,7 @@
         .inv-title h1 { font-size: 38px; font-weight: 800; margin: 0; color: #000; letter-spacing: 1px; }
         .inv-meta { margin-top: 10px; font-size: 14px; color: #333; }
         .inv-meta table td { padding-right: 15px; padding-bottom: 2px; }
-        .inv-logo img { width: 100px; height: auto; }
+        .inv-logo img { width: 110px; height: auto; }
         .inv-logo-text { text-align: center; font-size: 9px; color: #666; margin-top: 5px; line-height: 1.2; }
         
         .bill-to { margin-bottom: 30px; }
@@ -352,7 +352,7 @@
 
         .signature { text-align: center; width: 240px; position: relative; }
         .sig-role { font-size: 12px; font-weight: bold; margin-bottom: 45px; color: #333; }
-        .sig-img { height: 140px; width: auto; display: block; margin: -55px auto -35px auto; position: relative; z-index: 2; }
+        .sig-img { height: 120px; width: auto; display: block; margin: -55px auto -20px auto; position: relative; z-index: 2; }
         .sig-name { font-size: 13px; font-weight: bold; border-bottom: 1px solid #000; display: inline-block; padding: 0 10px 3px 10px; margin-top: -20px; position: relative; z-index: 1; background: white; }
 
         .address-footer { text-align: center; font-size: 9px; color: #555; border-top: 1px solid #ddd; padding-top: 15px; width: 100%; }
@@ -419,7 +419,7 @@
         </div>
     </div>
 
-    <div class="close-preview" id="btn-close-prev" onclick="togglePreview()">X TUTUP PREVIEW</div>
+    <div class="close-preview" id="btn-close-prev" onclick="togglePreview()"> X </div>
 
     <div class="invoice-wrapper" id="inv-wrapper">
         <div id="invoice-element">
@@ -514,7 +514,6 @@
     <script>
         // State Awal Data Item
         let items = [
-            { name: "Visa Service", sub: "VISA ON ARRIVAL EGYPT", price: 25, qty: 1 }
         ];
 
         // Format Currency Helper
@@ -561,7 +560,7 @@
         }
 
         function addItem() {
-            items.push({ name: "", sub: "", price: 0, qty: 1 });
+            items.push({ name: "", sub: "VISA ON ARRIVAL EGYPT", price: 0, qty: 1 });
             renderInputRows();
         }
 
