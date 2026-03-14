@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visa Confirmation Generator - Royal Asia Homestay</title>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+    <style>
+        :root {
+            --primary: #a59056;
+            --primary-hover: #8e7a46;
+            --dark: #1e293b;
+            --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .glass-panel {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-sizing: border-box;
+        }
+        h2.panel-title {
+            margin: 0 0 20px;
+            font-size: 20px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        input {
+            padding: 11px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(165,144,86,0.15);
+        }
+        /* Modern Passenger Card */
+        .pax-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+        }
+        .pax-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .pax-header h4 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .pax-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-add {
+            background: #f3f4f6;
+            color: var(--dark);
+            width: 100%;
+            margin-top: 12px;
+            border: 1px dashed #9ca3af;
+        }
+        .btn-add:hover { background: #e5e7eb; }
+        .btn-del {
+            background: #fee2e2;
+            color: var(--danger);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+        .btn-del:hover { background: #fca5a5; color: white; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-dark { background: var(--dark); color: white; }
+        .action-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.active { 
+    display: flex; 
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 900px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background: #1e293b;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.close-modal {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-modal:hover {
+    background: #dc2626;
+}
+
+.pdf-preview-container {
+    flex: 1;
+    overflow: auto;
+    padding: 20px;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: center;
+}
+
+.pdf-preview-canvas {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+        @media (max-width: 640px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 12px; }
+            .action-bar { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-panel">
+        <h2 class="panel-title">Visa Document Settings</h2>
+        <div class="input-group">
+            <label>Confirmation Letter From</label>
+            <input type="text" id="letterFrom" value="Royal Asia Homestay" placeholder="e.g. Royal Asia Homestay">
+        </div>
+        <div class="grid-3">
+            <div class="input-group">
+                <label>Date of Letter</label>
+                <input type="date" id="docDate" value="2026-03-14">
+            </div>
+            <div class="input-group">
+                <label>Immigration Appr. Number</label>
+                <input type="text" id="appNo" value="762">
+            </div>
+            <div class="input-group">
+                <label>Appr. Date</label>
+                <input type="date" id="appDate" value="2026-03-05">
+            </div>
+        </div>
+        <div class="grid-2" style="margin-top: 16px;">
+        <div class="input-group">
+            <label>Nama Penandatangan</label>
+            <input type="text" id="signatureName" value="H. SOHIB MUBASYIR FAUZI.LC" placeholder="Nama untuk best regards">
+        </div>
+        <div class="input-group">
+            <label>Nomor Telepon</label>
+            <input type="text" id="phoneNumber" value="+62881010660260" placeholder="Nomor HP dengan kode negara">
+        </div>
+    </div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label>Visit Start Date</label>
+                <input type="date" id="visitStart" value="2026-03-19">
+            </div>
+            <div class="input-group">
+                <label>Visit End Date</label>
+                <input type="date" id="visitEnd" value="2026-03-22">
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel">
+        <h2 class="panel-title">Passengers Data</h2>
+        <div id="pax-container"></div>
+        <button class="btn btn-add" onclick="addPax()">+ Tambah Penumpang</button>
+    </div>
+
+    <div class="glass-panel action-bar">
+        <button class="btn btn-dark" onclick="previewPDF()">LIHAT PREVIEW PDF</button>
+        <button class="btn btn-primary" onclick="downloadPDF()">DOWNLOAD PDF SEKARANG</button>
+    </div>
+
+<div class="modal" id="preview-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Preview Dokumen - A4 Size</h3>
+            <button class="close-modal" onclick="closePreview()">×</button>
+        </div>
+        <div class="pdf-preview-container" id="pdf-preview-container">
+            <canvas id="pdf-preview-canvas" class="pdf-preview-canvas"></canvas>
+        </div>
+    </div>
+</div>
+
+    <script>
+        const LOGO_URL = "https://i.ibb.co/tTn6DhJc/royalasia.png";
+        let logoBase64 = null;
+
+        function preloadAndResizeImage(url, maxWidth, callback) {
+            let img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                let canvas = document.createElement('canvas');
+                let ratio = Math.min(maxWidth / this.naturalWidth, 1);
+                canvas.width  = this.naturalWidth  * ratio;
+                canvas.height = this.naturalHeight * ratio;
+                let ctx = canvas.getContext('2d');
+                
+                // Penting: buat background transparan dulu
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
+                
+                // Tetap pakai PNG untuk preserve transparansi
+                callback(canvas.toDataURL('image/png'));
+            };
+            img.src = url;
+        }
+
+        // Panggil dengan ukuran cukup (400–600 px sudah bagus)
+        preloadAndResizeImage(LOGO_URL, 500, res => logoBase64 = res);
+
+        let paxList = [
+            { name: "SUBHAN MALIK", passport: "X2645990", bday: "1982-02-08", issue: "2024-01-05", exp: "2034-01-05" },
+            { name: "FEPI FAUZIYAH", passport: "X2680781", bday: "1982-07-29", issue: "2024-04-17", exp: "2034-04-17" },
+            { name: "SAFINA MALIKA NEJAH", passport: "X2680812", bday: "2012-05-28", issue: "2024-04-18", exp: "2029-04-18" },
+            { name: "GHILMAN MALIK KHATAMI", passport: "X2680774", bday: "2023-02-16", issue: "2024-04-17", exp: "2029-04-17" }
+        ];
+
+        function renderPaxRows() {
+            const container = document.getElementById('pax-container');
+            container.innerHTML = '';
+            paxList.forEach((pax, index) => {
+                const card = document.createElement('div');
+                card.className = 'pax-card';
+                card.innerHTML = `
+                    <div class="pax-header">
+                        <h4>Penumpang ${index + 1}</h4>
+                        <button class="btn btn-del" onclick="delPax(${index})" title="Hapus">×</button>
+                    </div>
+                    <div class="pax-grid">
+                        <div class="input-group">
+                            <label>Full Name</label>
+                            <input type="text" value="${pax.name}" oninput="updatePax(${index}, 'name', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Passport</label>
+                            <input type="text" value="${pax.passport}" oninput="updatePax(${index}, 'passport', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Birth Date</label>
+                            <input type="date" value="${pax.bday}" oninput="updatePax(${index}, 'bday', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Issue Date</label>
+                            <input type="date" value="${pax.issue}" oninput="updatePax(${index}, 'issue', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Expiry Date</label>
+                            <input type="date" value="${pax.exp}" oninput="updatePax(${index}, 'exp', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updatePax(index, field, value) {
+            paxList[index][field] = value;
+        }
+
+        function addPax() {
+            paxList.push({ name: "", passport: "", bday: "", issue: "", exp: "" });
+            renderPaxRows();
+        }
+
+        function delPax(index) {
+            if (confirm('Hapus penumpang ini?')) {
+                paxList.splice(index, 1);
+                renderPaxRows();
+            }
+        }
+
+        function fmtDate(dString) {
+            if (!dString) return '';
+            const p = dString.split('-');
+            return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dString;
+        }
+
+        function generateDoc() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // Header
+            if (logoBase64) {
+                doc.addImage(logoBase64, 'PNG', 85, 10, 40, 40, null, 'FAST', 0.75);
+            }
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.text('ROYAL ASIA TOUR EGYPT', 105, 56, { align: 'center' });
+            doc.setFontSize(13);
+            doc.text('VISA CONFIRMATION LETTER', 105, 63, { align: 'center' });
+
+            // Body
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+
+            const docDate    = document.getElementById('docDate').value;
+            const vStart     = document.getElementById('visitStart').value;
+            const vEnd       = document.getElementById('visitEnd').value;
+            const appNo      = document.getElementById('appNo').value;
+            const appDate    = document.getElementById('appDate').value;
+            const letterFrom = document.getElementById('letterFrom').value.trim() || 'Royal Asia Homestay';
+
+            doc.text(`Date: ${fmtDate(docDate)}`, 20, 82);
+
+            doc.text('Dear Sir/Madam,', 20, 92);
+            const paxCount = paxList.length;
+            const para1 = `${letterFrom} confirms the following ${paxCount} ${paxCount === 1 ? 'name' : 'names'} will be visiting Egypt from ${fmtDate(vStart)} until ${fmtDate(vEnd)}. The below listed ${paxCount === 1 ? 'person has' : 'persons have'} been granted entry visa to Egypt.`;
+            const para2 = `Approval number of the immigration department ${appNo} dated ${fmtDate(appDate)}.`;
+
+            // Hitung posisi Y
+            let startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 118;
+
+            // Hitung posisi awal dari "${appNo} dated ${fmtDate(appDate)}"
+            const prefixText = 'Approval number of the immigration department ';
+            const highlightStartX = 20 + doc.getTextWidth(prefixText);
+            const highlightText = `${appNo} on ${fmtDate(appDate)}`;
+            const highlightWidth = doc.getTextWidth(highlightText);
+
+            doc.setFillColor(165, 144, 86);
+            doc.setGState(new doc.GState({ opacity: 0.15 }));
+            doc.setFillColor(165, 144, 86);
+            doc.setGState(new doc.GState({ opacity: 0.15 }));
+            doc.roundedRect(highlightStartX - 0,   // POSISI X (geser ke kiri/kanan)
+                            startY - 5,            // POSISI Y (geser ke atas/bawah)
+                            highlightWidth + 7,    // PANJANG (lebar pill)
+                            7,                     // TINGGI (ketebalan pill)
+                            3,                     // RADIUS SUDUT (kelengkungan)
+                            3,                     // RADIUS SUDUT (kelengkungan)
+                            'F');
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            // Tulis teks
+            doc.text(para2, 20, startY, { maxWidth: 170 });
+
+            doc.text(para1, 20, 102, { maxWidth: 170, lineHeightFactor: 1.4 });
+            doc.text(para2, 20, doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 118, { maxWidth: 170 });
+
+            doc.text('The following table:', 20, doc.lastAutoTable ? doc.lastAutoTable.finalY + 20 : 128);
+
+            // Table
+            const tBody = paxList.map((p, i) => [
+                (i + 1).toString(),
+                p.name.toUpperCase(),
+                p.passport.toUpperCase(),
+                fmtDate(p.bday),
+                fmtDate(p.issue),
+                fmtDate(p.exp)
+            ]);
+
+            doc.autoTable({
+                startY: doc.lastAutoTable ? doc.lastAutoTable.finalY + 28 : 138,
+                head: [['NO', 'NAME', 'PASSPORT', 'B.DAY', 'ISSUE DATE', 'EXPIRY DATE']],
+                body: tBody,
+                theme: 'grid',
+                headStyles: { fillColor: [165, 144, 86], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                bodyStyles: { halign: 'center', valign: 'middle' },
+                columnStyles: { 1: { halign: 'left', cellWidth: 50 } },
+                styles: { fontSize: 10, cellPadding: 4, overflow: 'linebreak' },
+                margin: { left: 20, right: 20 }
+            });
+
+            // Footer dengan signature dan nomor telepon dari input
+            const signatureName = document.getElementById('signatureName').value.trim() || 'H. SOHIB MUBASYIR FAUZI.LC';
+            const phoneNumber = document.getElementById('phoneNumber').value.trim() || '+62881010660260';
+
+            let lastY = doc.lastAutoTable.finalY + 20;
+            doc.setFontSize(11);
+            doc.text('Best regards,', 20, lastY);
+            doc.setFont('helvetica', 'bold');
+            doc.text(signatureName, 20, lastY + 10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(phoneNumber, 20, lastY + 17);
+
+            // Address
+            doc.setFontSize(9);
+            doc.setTextColor(90);
+            doc.text(
+                'Egypt Branch: Building 2 Blok 27 Floor 7 Flat, 22 Haebah Tower-Ismail Wahbah st, 9th District, Nasr City, Cairo - Egypt.',
+                105, 280,
+                { align: 'center', maxWidth: 170 }
+            );
+
+            return doc;
+        }
+
+        function previewPDF() {
+            try {
+                // Generate PDF
+                const doc = generateDoc();
+                
+                // Buat canvas untuk preview
+                const canvas = document.getElementById('pdf-preview-canvas');
+                const container = document.getElementById('pdf-preview-container');
+                
+                // Bersihkan canvas sebelumnya
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Gunakan blob untuk render ke canvas
+                const blob = doc.output('blob');
+                const fileReader = new FileReader();
+                
+                fileReader.onload = function() {
+                    const typedarray = new Uint8Array(this.result);
+                    
+                    // Load PDF.js dari CDN
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
+                    
+                    script.onload = function() {
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                        
+                        // Load dokumen
+                        pdfjsLib.getDocument({ data: typedarray }).promise.then(function(pdf) {
+                            // Ambil halaman pertama
+                            pdf.getPage(1).then(function(page) {
+                                // Hitung skala agar muat di container
+                                const containerWidth = container.clientWidth - 40;
+                                const viewport = page.getViewport({ scale: 1.0 });
+                                const scale = containerWidth / viewport.width;
+                                
+                                // Set canvas dimensions
+                                const scaledViewport = page.getViewport({ scale });
+                                canvas.height = scaledViewport.height;
+                                canvas.width = scaledViewport.width;
+                                
+                                // Render PDF ke canvas
+                                const renderContext = {
+                                    canvasContext: ctx,
+                                    viewport: scaledViewport
+                                };
+                                
+                                page.render(renderContext).promise.then(function() {
+                                    console.log('PDF rendered successfully');
+                                });
+                            });
+                        }).catch(function(error) {
+                            console.error('Error loading PDF:', error);
+                            ctx.font = '14px Inter';
+                            ctx.fillStyle = '#ef4444';
+                            ctx.fillText('Gagal memuat preview PDF', 20, 50);
+                        });
+                    };
+                    
+                    document.head.appendChild(script);
+                };
+                
+                fileReader.readAsArrayBuffer(blob);
+                
+                // Tampilkan modal
+                document.getElementById('preview-modal').classList.add('active');
+                
+            } catch (error) {
+                console.error('Preview error:', error);
+                alert('Gagal membuat preview. Silakan download PDF untuk melihat hasil.');
+            }
+        }
+
+        function closePreview() {
+            document.getElementById('preview-modal').classList.remove('active');
+            // Bersihkan canvas
+            const canvas = document.getElementById('pdf-preview-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function downloadPDF() {
+            const doc = generateDoc();
+            
+            // Ambil nilai dari input
+            const appNumber = document.getElementById('appNo').value.trim() || '762';
+            const letterFrom = document.getElementById('letterFrom').value.trim() || 'Royal Asia Homestay';
+            const visitStart = document.getElementById('visitStart').value;
+            const visitEnd = document.getElementById('visitEnd').value;
+            
+            // Format tanggal untuk nama file (YYYY-MM-DD)
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            
+            // Buat nama file yang rapi
+            // Format: VISA_CONFIRMATION_APPR-[NUMBER]_[LETTERFROM]_[DATE].pdf
+            let fileName = `VISA_CONFIRMATION_APPR-${appNumber}_${letterFrom}`;
+            
+            // Bersihkan karakter yang tidak valid untuk nama file
+            fileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_'); // Ganti karakter khusus dengan underscore
+            
+            // Tambahkan tanggal
+            fileName = `${fileName}_${dateStr}.pdf`;
+            
+            // Alternatif format lain (lebih lengkap dengan tanggal kunjungan):
+            // const fileName2 = `VISA_CONFIRM_${appNumber}_${letterFrom}_${visitStart}_to_${visitEnd}.pdf`;
+            // fileName2 = fileName2.replace(/[^a-zA-Z0-9_-]/g, '_');
+            
+            doc.save(fileName);
+        }
+
+        // Init
+        renderPaxRows();
+    </script>
+</body>
+</html>
